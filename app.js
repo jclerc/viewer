@@ -26,6 +26,10 @@ const expandBtn = document.querySelector("#expand-btn");
 const collapseBtn = document.querySelector("#collapse-btn");
 const shareBtn = document.querySelector("#share-btn");
 const fullscreenBtn = document.querySelector("#fullscreen-btn");
+const fsExitBtn = document.querySelector("#fs-exit-btn");
+const mobileLayout = matchMedia(
+  "(max-width: 720px), (max-width: 960px) and (max-height: 500px)",
+);
 const searchInput = document.querySelector("#search-input");
 const searchBtn = document.querySelector("#search-btn");
 const searchCount = document.querySelector("#search-count");
@@ -92,8 +96,13 @@ async function init() {
   expandBtn.addEventListener("click", () => setAllCollapsed(false));
   collapseBtn.addEventListener("click", () => setAllCollapsed(true));
   fullscreenBtn.addEventListener("click", toggleFullscreen);
+  fsExitBtn.addEventListener("click", () => setLayoutFullscreen(false));
   document.addEventListener("fullscreenchange", syncFullscreenBtn);
   document.addEventListener("webkitfullscreenchange", syncFullscreenBtn);
+  document.addEventListener("keydown", onLayoutFsKey);
+  mobileLayout.addEventListener("change", () => {
+    if (!mobileLayout.matches) setLayoutFullscreen(false);
+  });
   shareBtn.addEventListener("click", () => openShare(currentLineSpec()));
   searchInput.addEventListener("input", onSearchInput);
   searchInput.addEventListener("keydown", onSearchKey);
@@ -206,6 +215,10 @@ function onJqInput() {
 }
 
 function toggleFullscreen() {
+  if (mobileLayout.matches) {
+    setLayoutFullscreen(!isLayoutFullscreen());
+    return;
+  }
   if (fullscreenElement() === viewer) {
     const exit = document.exitFullscreen || document.webkitExitFullscreen;
     if (exit) exit.call(document);
@@ -215,12 +228,28 @@ function toggleFullscreen() {
   if (enter) enter.call(viewer);
 }
 
+function isLayoutFullscreen() {
+  return document.documentElement.classList.contains("is-fs");
+}
+
+function setLayoutFullscreen(on) {
+  document.documentElement.classList.toggle("is-fs", on);
+  syncFullscreenBtn();
+}
+
+function onLayoutFsKey(e) {
+  if (e.key !== "Escape" || e.altKey || e.ctrlKey || e.metaKey) return;
+  if (!isLayoutFullscreen()) return;
+  e.preventDefault();
+  setLayoutFullscreen(false);
+}
+
 function fullscreenElement() {
   return document.fullscreenElement || document.webkitFullscreenElement;
 }
 
 function syncFullscreenBtn() {
-  const on = fullscreenElement() === viewer;
+  const on = isLayoutFullscreen() || fullscreenElement() === viewer;
   const label = fullscreenBtn.querySelector("[data-label]");
   const icon = fullscreenBtn.querySelector("use");
   if (label) label.textContent = on ? "Exit fullscreen" : "Fullscreen";

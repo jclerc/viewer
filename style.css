@@ -462,6 +462,45 @@ button.primary:hover:not(:disabled) {
   padding: 0.8rem 0 2rem;
 }
 
+html.is-fs,
+html.is-fs body,
+html.is-fs .app {
+  height: 100dvh;
+}
+
+html.is-fs .app {
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr;
+}
+
+html.is-fs .sidebar {
+  display: none;
+}
+
+html.is-fs .viewer {
+  padding: 0.8rem 3.2rem 2rem 0;
+}
+
+.fs-exit {
+  display: none;
+  position: fixed;
+  z-index: 40;
+  top: max(0.7rem, env(safe-area-inset-top));
+  right: max(0.7rem, env(safe-area-inset-right));
+  width: 2.4rem;
+  height: 2.4rem;
+  padding: 0;
+  border-radius: 50%;
+  background: var(--bg-elev);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 18%);
+  align-items: center;
+  justify-content: center;
+}
+
+html.is-fs .fs-exit {
+  display: inline-flex;
+}
+
 .empty {
   margin: 1.5rem;
   color: var(--fg-dim);
