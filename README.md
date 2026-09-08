@@ -1,8 +1,10 @@
-# JSON Viewer ✨
+# File Viewer ✨
+
+### JSON
 
 A small, zero-dependency viewer for JSON, JSONL, and JSONC.
 
-**[Open it →](https://jclerc.github.io/json-viewer/)**
+**[Open it →](https://jclerc.github.io/viewer/json/)**
 
 - 🎨 Syntax colors, expand / collapse, Light / Default / Dark
 - 🧩 Nested JSON strings parsed in place (can be turned off)
