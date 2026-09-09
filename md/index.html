@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="default" data-kind="json">
+<html lang="en" data-theme="default" data-kind="md">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>JSON Viewer</title>
+    <title>Markdown Viewer</title>
     <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="../assets/style.css" />
   </head>
@@ -95,12 +95,12 @@
           <h1>
             <a class="home-link" href="../">Viewer</a>
             <span class="brand-sep">/</span>
-            JSON
+            Markdown
             <a class="source-link" href="https://github.com/jclerc/json-viewer">(source)</a>
           </h1>
           <p>
-            Paste or upload JSON, JSONL, or JSONC. Or use
-            <a href="./example.json" id="example-link">example</a>.
+            Paste or upload Markdown. Or use
+            <a href="./example.md" id="example-link">example</a>.
           </p>
         </header>
 
@@ -121,7 +121,7 @@
             spellcheck="false"
             autocomplete="off"
             autocapitalize="off"
-            placeholder='{"hello": "world"}'
+            placeholder="# Title"
           ></textarea>
         </div>
 
@@ -156,44 +156,22 @@
             type="search"
             spellcheck="false"
             autocomplete="off"
-            placeholder="Find in JSON"
-            aria-label="Find in JSON"
+            placeholder="Find in Markdown"
+            aria-label="Find in Markdown"
             aria-keyshortcuts="Meta+K Control+K"
           />
           <kbd class="tool-shortcut" data-shortcut="K" aria-hidden="true">⌘ K</kbd>
           <span id="search-count" class="tool-meta"></span>
         </div>
 
-        <div class="tool-field">
-          <button type="button" class="tool-label" id="jq-btn" aria-pressed="true">
-            <svg class="glyph" aria-hidden="true" viewBox="0 0 16 16" width="16" height="16"><use href="#g-jq" /></svg>
-            Apply jq
-          </button>
-          <input
-            id="jq-input"
-            spellcheck="false"
-            autocomplete="off"
-            autocapitalize="off"
-            placeholder=".foo | select(.bar == 1)"
-            aria-label="jq filter"
-            aria-keyshortcuts="Meta+J Control+J"
-          />
-          <kbd class="tool-shortcut" data-shortcut="J" aria-hidden="true">⌘ J</kbd>
-          <span id="jq-meta" class="tool-meta"></span>
-        </div>
-
         <input
           id="file"
           type="file"
           hidden
-          accept=".json,.jsonl,.jsonc,.txt,application/json,text/plain"
+          accept=".md,.markdown,.txt,text/markdown,text/plain"
         />
 
         <div class="checks">
-          <label class="check">
-            <input type="checkbox" id="nest-toggle" checked />
-            Parse nested JSON
-          </label>
           <label class="check">
             <input type="checkbox" id="wrap-toggle" checked />
             Word wrap
@@ -221,8 +199,8 @@
       </aside>
 
       <main class="stage">
-        <div id="viewer" class="viewer" aria-label="JSON tree">
-          <p class="empty">Paste JSON on the left to view it here.</p>
+        <div id="viewer" class="viewer" aria-label="Markdown view">
+          <p class="empty">Paste Markdown on the left to view it here.</p>
         </div>
         <button type="button" id="fs-exit-btn" class="fs-exit" aria-label="Exit fullscreen">
           <svg class="glyph" aria-hidden="true" viewBox="0 0 16 16" width="16" height="16"><use href="#g-close" /></svg>

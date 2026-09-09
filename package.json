@@ -1,0 +1,7 @@
+{
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node json/test.mjs && node md/test.mjs && node csv/test.mjs"
+  }
+}

@@ -122,6 +122,21 @@ body {
   color: var(--fg-strong);
 }
 
+.home-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.home-link:hover {
+  color: var(--key);
+}
+
+.brand-sep {
+  margin: 0 0.2rem;
+  font-weight: 400;
+  color: var(--fg-dim);
+}
+
 .source-link {
   margin-left: 0.25rem;
   font-size: 0.72rem;
@@ -188,7 +203,7 @@ body {
 }
 
 .source-wrap.is-drop-target::after {
-  content: "drop json file here";
+  content: "drop file here";
   position: absolute;
   inset: 0;
   display: grid;
@@ -199,6 +214,22 @@ body {
   color: var(--fg-strong);
   font-size: 0.95rem;
   pointer-events: none;
+}
+
+html[data-kind="json"] .source-wrap.is-drop-target::after {
+  content: "drop json file here";
+}
+
+html[data-kind="md"] .source-wrap.is-drop-target::after {
+  content: "drop markdown file here";
+}
+
+html[data-kind="csv"] .source-wrap.is-drop-target::after {
+  content: "drop csv file here";
+}
+
+html[data-kind="home"] .source-wrap.is-drop-target::after {
+  content: "drop a json, markdown, or csv file";
 }
 
 .actions {
@@ -818,5 +849,203 @@ dialog::backdrop {
     max-width: calc(100vw - 1.5rem);
     margin-inline: max(0.75rem, env(safe-area-inset-left))
       max(0.75rem, env(safe-area-inset-right));
+  }
+}
+
+.viewer.is-csv .content,
+.viewer.is-csv.no-wrap .content {
+  display: grid;
+  grid-template-columns: repeat(var(--csv-cols, 1), minmax(7rem, 1fr));
+  column-gap: 0;
+  white-space: normal;
+  word-break: normal;
+}
+
+.viewer.is-csv.no-wrap .csv-cell {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.csv-cell {
+  position: relative;
+  min-width: 0;
+  padding: 0 0.55rem;
+  border-right: 1px solid var(--border);
+  word-break: break-word;
+}
+
+.csv-sep {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+.csv-cell.is-sort {
+  cursor: pointer;
+}
+
+.csv-cell.is-sort:hover {
+  background: var(--btn-hover);
+}
+
+.csv-cell.is-asc::after,
+.csv-cell.is-desc::after {
+  color: var(--count);
+  font-size: 0.78em;
+}
+
+.csv-cell.is-asc::after {
+  content: " ▲";
+}
+
+.csv-cell.is-desc::after {
+  content: " ▼";
+}
+
+.line.is-header .csv-cell {
+  font-weight: 650;
+  color: var(--fg-strong);
+}
+
+.line.is-header {
+  background: color-mix(in srgb, var(--sel) 70%, transparent);
+}
+
+.md-hash.md-h1,
+.md-h1 {
+  color: var(--key);
+  font-weight: 650;
+}
+
+.md-hash.md-h2,
+.md-h2 {
+  color: var(--str);
+  font-weight: 650;
+}
+
+.md-hash.md-h3,
+.md-h3 {
+  color: var(--bool);
+  font-weight: 650;
+}
+
+.md-hash.md-h4,
+.md-hash.md-h5,
+.md-hash.md-h6 {
+  color: var(--num);
+  font-weight: 650;
+}
+
+.md-code {
+  color: var(--str);
+  background: color-mix(in srgb, var(--btn) 80%, transparent);
+  border-radius: 3px;
+  padding: 0 0.2em;
+}
+
+.md-codeblock,
+.md-fence {
+  color: var(--str);
+}
+
+.md-fence {
+  color: var(--fg-dim);
+}
+
+.md-quote-mark,
+.md-hr {
+  color: var(--fg-dim);
+}
+
+.md-list-mark {
+  color: var(--num);
+}
+
+.md-strong {
+  font-weight: 650;
+  color: var(--fg-strong);
+}
+
+.md-em {
+  font-style: italic;
+}
+
+.md-strike {
+  text-decoration: line-through;
+  color: var(--fg-dim);
+}
+
+.md-link {
+  color: var(--key);
+  text-decoration: underline;
+  text-underline-offset: 0.14em;
+}
+
+.md-image {
+  color: var(--bool);
+}
+
+body.landing {
+  min-height: 100%;
+  display: grid;
+  place-items: start center;
+}
+
+.landing-card {
+  width: min(44rem, 100%);
+  margin: 8vh 1.25rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.landing-card .brand {
+  margin-bottom: 0.2rem;
+}
+
+.landing-card .source-wrap {
+  flex: none;
+  min-height: 14rem;
+}
+
+.landing-card #source {
+  min-height: 14rem;
+}
+
+.kind-hint {
+  margin: 0;
+  min-height: 1.2em;
+  font-size: 0.82rem;
+  color: var(--fg-dim);
+}
+
+.kind-hint strong {
+  color: var(--fg-strong);
+  font-weight: 650;
+}
+
+.landing-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem 1.1rem;
+  font-size: 0.85rem;
+}
+
+.landing-links a {
+  color: var(--key);
+  text-decoration: none;
+}
+
+.landing-links a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 720px), (max-width: 960px) and (max-height: 500px) {
+  .landing-card {
+    margin: 1rem max(0.75rem, env(safe-area-inset-right)) 1.5rem
+      max(0.75rem, env(safe-area-inset-left));
+    width: calc(100% - 1.5rem);
   }
 }
