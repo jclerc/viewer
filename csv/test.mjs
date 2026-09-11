@@ -1,5 +1,5 @@
 import { parseCsv, detectDelimiter, serializeCsv, sortRows, compareCells } from "./parser.js";
-import { detectKind, formatSpec, parseSpec } from "../assets/common.js";
+import { detectKind, formatSpec, parseSpec, buildHash, readHash } from "../assets/common.js";
 
 function eq(a, b, msg) {
   const left = JSON.stringify(a);
@@ -76,6 +76,15 @@ function eq(a, b, msg) {
   eq(parseSpec("L3:L3"), { kind: "cells", fromCol: 11, fromRow: 3, toCol: 11, toRow: 3 }, "parse L3:L3 as cells");
   eq(parseSpec("L3:L6"), { kind: "cells", fromCol: 11, fromRow: 3, toCol: 11, toRow: 6 }, "L column range");
   eq(parseSpec("L3-6"), { kind: "lines", from: 3, to: 6 }, "line range");
+}
+
+{
+  const hash = await buildHash("{}", null);
+  eq(hash.startsWith("gz|"), typeof CompressionStream === "function", "gzip when available");
+  const got = await readHash(hash);
+  eq(got.text, "{}", "gzip roundtrip");
+  const legacy = await readHash("e30");
+  eq(got.text, legacy.text, "legacy uncompressed hash");
 }
 
 console.log("ok");

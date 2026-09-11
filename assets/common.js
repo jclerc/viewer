@@ -1,6 +1,9 @@
 export const THEMES = ["light", "default", "dark"];
 export const LS_THEME = "viewer.theme";
+export const LS_SIDEBAR_WIDTH = "viewer.sidebar-width";
 export const INPUT_DEBOUNCE_MS = 200;
+const SIDEBAR_MIN_REM = 16;
+const SIDEBAR_MAX_PX = 450;
 
 export function ns(kind) {
   return {
@@ -372,11 +375,12 @@ export async function gunzipBytes(bytes) {
 }
 
 export async function buildHash(text, spec, opts = {}) {
-  let body;
-  if (text.length > 1000) {
-    body = `gz|${bytesToB64(await gzipBytes(new TextEncoder().encode(text)))}`;
-  } else {
-    body = bytesToB64(new TextEncoder().encode(text));
+  const bytes = new TextEncoder().encode(text);
+  let body = bytesToB64(bytes);
+  if (typeof CompressionStream === "function") {
+    try {
+      body = `gz|${bytesToB64(await gzipBytes(bytes))}`;
+    } catch {}
   }
   const extras = [];
   if (opts.nest != null) extras.push(opts.nest ? "n1" : "n0");
@@ -534,6 +538,7 @@ export function mountViewer(options) {
     if (jqInput) applyJqOn(localStorage.getItem(ls.jqOn) !== "0");
 
     extraInit?.(api);
+    bindSidebarResize();
 
     bootFromHashOrStorage().then(() => {
       render();
@@ -627,6 +632,57 @@ export function mountViewer(options) {
     document.addEventListener("selectionchange", onSelChange);
     window.addEventListener("hashchange", onHashChange);
     shareUrl.addEventListener("focus", () => shareUrl.select());
+  }
+
+  function sidebarLimits() {
+    const min = SIDEBAR_MIN_REM * parseFloat(getComputedStyle(document.documentElement).fontSize);
+    return { min, max: SIDEBAR_MAX_PX };
+  }
+
+  function setSidebarWidth(px) {
+    const app = document.querySelector(".app");
+    if (!app) return;
+    const { min, max } = sidebarLimits();
+    const width = Math.round(Math.min(max, Math.max(min, px)));
+    app.style.setProperty("--sidebar-width", `${width}px`);
+    return width;
+  }
+
+  function bindSidebarResize() {
+    const app = document.querySelector(".app");
+    const sidebar = document.querySelector(".sidebar");
+    if (!app || !sidebar) return;
+
+    const saved = Number(localStorage.getItem(LS_SIDEBAR_WIDTH));
+    if (Number.isFinite(saved) && saved > 0) setSidebarWidth(saved);
+
+    const handle = el("button", {
+      type: "button",
+      class: "sidebar-resizer",
+      "aria-label": "Resize sidebar",
+    });
+    sidebar.append(handle);
+
+    handle.addEventListener("pointerdown", (e) => {
+      if (e.button !== 0 || mobileLayout.matches) return;
+      e.preventDefault();
+      document.documentElement.classList.add("is-resizing-sidebar");
+
+      let width;
+      const onMove = (ev) => {
+        width = setSidebarWidth(ev.clientX - app.getBoundingClientRect().left);
+      };
+      const onUp = () => {
+        window.removeEventListener("pointermove", onMove);
+        window.removeEventListener("pointerup", onUp);
+        window.removeEventListener("pointercancel", onUp);
+        document.documentElement.classList.remove("is-resizing-sidebar");
+        if (width) localStorage.setItem(LS_SIDEBAR_WIDTH, String(width));
+      };
+      window.addEventListener("pointermove", onMove);
+      window.addEventListener("pointerup", onUp);
+      window.addEventListener("pointercancel", onUp);
+    });
   }
 
   function onNestToggle() {

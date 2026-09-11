@@ -100,19 +100,55 @@ body {
 }
 
 .app {
+  --sidebar-min: 16rem;
+  --sidebar-max: 450px;
+  --sidebar-width: min(33vw, var(--sidebar-max));
   display: grid;
-  grid-template-columns: minmax(16rem, 1fr) 2fr;
+  grid-template-columns: minmax(var(--sidebar-min), min(var(--sidebar-width), var(--sidebar-max)))
+    minmax(0, 1fr);
   height: 100%;
 }
 
 .sidebar {
   display: flex;
+  position: relative;
   flex-direction: column;
   gap: 0.65rem;
   padding: 1rem 1rem 0.85rem;
   background: var(--bg-side);
   border-right: 1px solid var(--border);
   min-width: 0;
+  max-width: var(--sidebar-max);
+}
+
+.sidebar-resizer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 3;
+  width: 7px;
+  height: 100%;
+  margin: 0;
+  border: 0;
+  padding: 0;
+  border-radius: 0;
+  appearance: none;
+  background: transparent;
+  cursor: col-resize;
+  touch-action: none;
+  translate: 50% 0;
+}
+
+.sidebar-resizer:hover,
+.sidebar-resizer:focus-visible,
+html.is-resizing-sidebar .sidebar-resizer {
+  background: var(--key);
+}
+
+html.is-resizing-sidebar,
+html.is-resizing-sidebar * {
+  cursor: col-resize;
+  user-select: none;
 }
 
 .brand h1 {
@@ -808,9 +844,14 @@ dialog::backdrop {
     overflow: auto;
     border-right: 0;
     border-bottom: 1px solid var(--border);
+    max-width: none;
     padding: 0.75rem max(0.75rem, env(safe-area-inset-right)) 0.7rem
       max(0.75rem, env(safe-area-inset-left));
     gap: 0.5rem;
+  }
+
+  .sidebar-resizer {
+    display: none;
   }
 
   .source-wrap {
