@@ -1,5 +1,5 @@
 import { parseCsv, detectDelimiter, serializeCsv, sortRows, compareCells } from "./parser.js";
-import { detectKind } from "../assets/common.js";
+import { detectKind, formatSpec, parseSpec } from "../assets/common.js";
 
 function eq(a, b, msg) {
   const left = JSON.stringify(a);
@@ -48,6 +48,9 @@ function eq(a, b, msg) {
 {
   eq(compareCells("10", "2") > 0, true, "numeric compare");
   eq(serializeCsv([["a", "b,c"]]), 'a,"b,c"', "serialize quotes");
+  eq(serializeCsv([["a", "b"]], ";"), "a;b", "horizontal copy");
+  eq(serializeCsv([["a"], ["b"]], ";"), "a\nb", "vertical copy");
+  eq(serializeCsv([["a", "b"], ["c", "d"]], ","), "a,b\nc,d", "block copy");
 }
 
 {
@@ -58,6 +61,21 @@ function eq(a, b, msg) {
   eq(detectKind("hello world"), "md", "prose is markdown");
   eq(detectKind("x", "notes.md"), "md", "extension wins");
   eq(detectKind("a,b", "data.json"), "json", "json extension wins");
+}
+
+{
+  eq(formatSpec({ kind: "cells", fromCol: 1, fromRow: 3, toCol: 1, toRow: 6 }), "B3:B6", "vertical cells");
+  eq(formatSpec({ kind: "cells", fromCol: 1, fromRow: 3, toCol: 3, toRow: 3 }), "B3:D3", "horizontal cells");
+  eq(formatSpec({ kind: "cells", fromCol: 0, fromRow: 1, toCol: 0, toRow: 1 }), "A1", "single cell");
+  eq(formatSpec({ kind: "cells", fromCol: 26, fromRow: 10, toCol: 27, toRow: 12 }), "AA10:AB12", "double letters");
+  eq(parseSpec("B3:B6"), { kind: "cells", fromCol: 1, fromRow: 3, toCol: 1, toRow: 6 }, "parse vertical");
+  eq(parseSpec("D3:B3"), { kind: "cells", fromCol: 1, fromRow: 3, toCol: 3, toRow: 3 }, "normalize rectangle");
+  eq(parseSpec("A1"), { kind: "cells", fromCol: 0, fromRow: 1, toCol: 0, toRow: 1 }, "parse single");
+  eq(parseSpec("L3"), { kind: "lines", from: 3, to: 3 }, "L3 stays a line");
+  eq(formatSpec({ kind: "cells", fromCol: 11, fromRow: 3, toCol: 11, toRow: 3 }), "L3:L3", "column L single cell");
+  eq(parseSpec("L3:L3"), { kind: "cells", fromCol: 11, fromRow: 3, toCol: 11, toRow: 3 }, "parse L3:L3 as cells");
+  eq(parseSpec("L3:L6"), { kind: "cells", fromCol: 11, fromRow: 3, toCol: 11, toRow: 6 }, "L column range");
+  eq(parseSpec("L3-6"), { kind: "lines", from: 3, to: 6 }, "line range");
 }
 
 console.log("ok");

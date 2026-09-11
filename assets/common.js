@@ -248,9 +248,45 @@ export async function copyText(text) {
   }
 }
 
+export function colLetter(index) {
+  let n = index + 1;
+  let out = "";
+  while (n > 0) {
+    n -= 1;
+    out = String.fromCharCode(65 + (n % 26)) + out;
+    n = Math.floor(n / 26);
+  }
+  return out;
+}
+
+export function parseColLetter(text) {
+  const s = String(text).toUpperCase();
+  if (!/^[A-Z]+$/.test(s)) return null;
+  let n = 0;
+  for (const ch of s) n = n * 26 + (ch.charCodeAt(0) - 64);
+  return n - 1;
+}
+
+export function normalizeCells(spec) {
+  return {
+    kind: "cells",
+    fromCol: Math.min(spec.fromCol, spec.toCol),
+    fromRow: Math.min(spec.fromRow, spec.toRow),
+    toCol: Math.max(spec.fromCol, spec.toCol),
+    toRow: Math.max(spec.fromRow, spec.toRow),
+  };
+}
+
 export function formatSpec(spec) {
   if (spec.kind === "lines") {
     return spec.from === spec.to ? `L${spec.from}` : `L${spec.from}-${spec.to}`;
+  }
+  if (spec.kind === "cells") {
+    const a = `${colLetter(spec.fromCol)}${spec.fromRow}`;
+    const b = `${colLetter(spec.toCol)}${spec.toRow}`;
+    // L12 is already a line spec, so a single cell in column L uses L12:L12.
+    if (a === b && /^L\d+$/.test(a)) return `${a}:${b}`;
+    return a === b ? a : `${a}:${b}`;
   }
   if (spec.fromLine === spec.toLine) {
     return `L${spec.fromLine}:${spec.fromCol}-${spec.toCol}`;
@@ -288,6 +324,27 @@ export function parseSpec(spec) {
   if (m) {
     const n = Number(m[1]);
     return { kind: "lines", from: n, to: n };
+  }
+  m = /^([A-Za-z]+)(\d+):([A-Za-z]+)(\d+)$/.exec(spec);
+  if (m) {
+    const fromCol = parseColLetter(m[1]);
+    const toCol = parseColLetter(m[3]);
+    if (fromCol != null && toCol != null) {
+      return normalizeCells({
+        fromCol,
+        fromRow: Number(m[2]),
+        toCol,
+        toRow: Number(m[4]),
+      });
+    }
+  }
+  m = /^([A-Za-z]+)(\d+)$/.exec(spec);
+  if (m) {
+    const col = parseColLetter(m[1]);
+    if (col != null) {
+      const row = Number(m[2]);
+      return { kind: "cells", fromCol: col, fromRow: row, toCol: col, toRow: row };
+    }
   }
   return null;
 }
@@ -372,6 +429,7 @@ export function mountViewer(options) {
     extraInit,
     hashOpts,
     applyHashExtras,
+    copyCells,
     render: renderBody,
   } = options;
 
@@ -412,6 +470,7 @@ export function mountViewer(options) {
 
   const ctx = { line: 0 };
   let lineSel = null;
+  let cellSel = null;
   let lastClicked = null;
   let pendingSel = null;
   let lastTipSpec = null;
@@ -454,9 +513,12 @@ export function mountViewer(options) {
     sourceSize,
     resetSelection() {
       lineSel = null;
+      cellSel = null;
       lastClicked = null;
       pendingSel = null;
     },
+    selectCells,
+    showCellTip,
   };
 
   init();
@@ -464,7 +526,8 @@ export function mountViewer(options) {
   function init() {
     applyTheme(readTheme(), themeBtns);
     if (nestToggle) nestToggle.checked = localStorage.getItem(ls.nest) !== "0";
-    wrapToggle.checked = localStorage.getItem(ls.wrap) !== "0";
+    const savedWrap = localStorage.getItem(ls.wrap);
+    if (savedWrap != null) wrapToggle.checked = savedWrap !== "0";
     regexToggle.checked = localStorage.getItem(ls.regex) !== "0";
     if (headerToggle) headerToggle.checked = localStorage.getItem(ls.header) !== "0";
     applyWrap(viewer, wrapToggle.checked);
@@ -522,7 +585,7 @@ export function mountViewer(options) {
     mobileLayout.addEventListener("change", () => {
       if (!mobileLayout.matches) setLayoutFullscreen(false);
     });
-    shareBtn.addEventListener("click", () => openShare(currentLineSpec()));
+    shareBtn.addEventListener("click", () => openShare(currentShareSpec()));
     searchInput.addEventListener("input", onSearchInput);
     searchInput.addEventListener("keydown", onSearchKey);
     searchBtn.addEventListener("click", () => goSearch(1));
@@ -835,6 +898,9 @@ export function mountViewer(options) {
         applySelection(sel);
         applySearch({ reset: true });
       });
+    } else if (cellSel) {
+      paintCellSel();
+      applySearch({ reset: false });
     } else if (lineSel) {
       paintLineSel();
       applySearch({ reset: false });
@@ -859,8 +925,11 @@ export function mountViewer(options) {
       lastClicked = n;
       lineSel = { from: n, to: n };
     }
+    cellSel = null;
     unwrapMarks();
+    paintCellSel();
     paintLineSel();
+    hideTip();
   }
 
   function paintLineSel() {
@@ -876,11 +945,86 @@ export function mountViewer(options) {
     return { kind: "lines", from: lineSel.from, to: lineSel.to };
   }
 
+  function currentShareSpec() {
+    return cellSel ?? currentLineSpec();
+  }
+
+  function selectCells(range) {
+    lineSel = null;
+    paintLineSel();
+    cellSel = normalizeCells(range);
+    lastClicked = cellSel.fromRow;
+    unwrapMarks();
+    paintCellSel();
+  }
+
+  function paintCellSel() {
+    viewer.querySelectorAll(".csv-cell.is-selected").forEach((node) => node.classList.remove("is-selected"));
+    if (!cellSel) return;
+    for (let row = cellSel.fromRow; row <= cellSel.toRow; row += 1) {
+      const line = viewer.querySelector(`.line[data-line="${row}"]`);
+      if (!line) continue;
+      line.querySelectorAll(".csv-cell").forEach((cell) => {
+        const col = Number(cell.dataset.col);
+        if (col >= cellSel.fromCol && col <= cellSel.toCol) cell.classList.add("is-selected");
+      });
+    }
+  }
+
+  function scrollCellsIntoCenter() {
+    const nodes = [...viewer.querySelectorAll(".csv-cell.is-selected")];
+    if (!nodes.length) return;
+    let left = Infinity;
+    let top = Infinity;
+    let right = -Infinity;
+    let bottom = -Infinity;
+    for (const node of nodes) {
+      const r = node.getBoundingClientRect();
+      if (r.width === 0 && r.height === 0) continue;
+      left = Math.min(left, r.left);
+      top = Math.min(top, r.top);
+      right = Math.max(right, r.right);
+      bottom = Math.max(bottom, r.bottom);
+    }
+    if (!Number.isFinite(left)) return;
+    const vr = viewer.getBoundingClientRect();
+    viewer.scrollLeft += (left + right) / 2 - (vr.left + vr.right) / 2;
+    viewer.scrollTop += (top + bottom) / 2 - (vr.top + vr.bottom) / 2;
+  }
+
+  function showCellTip() {
+    if (!cellSel) return;
+    lastTipSpec = cellSel;
+    const nodes = [...viewer.querySelectorAll(".csv-cell.is-selected")];
+    let left = Infinity;
+    let top = Infinity;
+    let right = -Infinity;
+    for (const node of nodes) {
+      const r = node.getBoundingClientRect();
+      if (r.width === 0 && r.height === 0) continue;
+      left = Math.min(left, r.left);
+      top = Math.min(top, r.top);
+      right = Math.max(right, r.right);
+    }
+    if (!Number.isFinite(left)) {
+      hideTip();
+      return;
+    }
+    selTip.hidden = false;
+    selTip.style.left = `${(left + right) / 2}px`;
+    selTip.style.top = `${top}px`;
+  }
+
   function onSelChange() {
     const spec = selectionSpec();
     if (!spec) {
+      if (cellSel) return;
       hideTip();
       return;
+    }
+    if (cellSel) {
+      cellSel = null;
+      paintCellSel();
     }
     lastTipSpec = spec;
     const sel = getSelection();
@@ -942,6 +1086,17 @@ export function mountViewer(options) {
 
   function applySelection(sel) {
     unwrapMarks();
+    if (sel.kind === "cells") {
+      lineSel = null;
+      cellSel = normalizeCells(sel);
+      lastClicked = cellSel.fromRow;
+      paintLineSel();
+      paintCellSel();
+      requestAnimationFrame(scrollCellsIntoCenter);
+      return;
+    }
+    cellSel = null;
+    paintCellSel();
     if (sel.kind === "cols") {
       lineSel = {
         from: Math.min(sel.fromLine, sel.toLine),
@@ -1033,7 +1188,16 @@ export function mountViewer(options) {
       return;
     }
 
-    if (e.code !== "KeyC" || inTextField() || hasTextSelection() || !lastFormatted) return;
+    if (e.code !== "KeyC" || inTextField() || hasTextSelection()) return;
+    if (cellSel && copyCells) {
+      e.preventDefault();
+      const n = (cellSel.toRow - cellSel.fromRow + 1) * (cellSel.toCol - cellSel.fromCol + 1);
+      copyText(copyCells(cellSel, viewer)).then(() => {
+        showToast(`${n} cell${n === 1 ? "" : "s"} copied`);
+      });
+      return;
+    }
+    if (!lastFormatted) return;
 
     e.preventDefault();
     copyFormatted();

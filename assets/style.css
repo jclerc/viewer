@@ -479,10 +479,11 @@ button.primary:hover:not(:disabled) {
 }
 
 .viewer {
+  --viewer-pad-top: 0.4rem;
   height: 100%;
   overflow: auto;
   font: 13px/1.5 ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  padding: 0.4rem 0 2rem;
+  padding: var(--viewer-pad-top) 0 2rem;
 }
 
 #viewer:fullscreen,
@@ -490,7 +491,8 @@ button.primary:hover:not(:disabled) {
   background: var(--bg);
   width: 100%;
   height: 100%;
-  padding: 0.8rem 0 2rem;
+  --viewer-pad-top: 0.8rem;
+  padding: var(--viewer-pad-top) 0 2rem;
 }
 
 html.is-fs,
@@ -509,7 +511,8 @@ html.is-fs .sidebar {
 }
 
 html.is-fs .viewer {
-  padding: 0.8rem 3.2rem 2rem 0;
+  --viewer-pad-top: 0.8rem;
+  padding: var(--viewer-pad-top) 3.2rem 2rem 0;
 }
 
 .fs-exit {
@@ -852,19 +855,51 @@ dialog::backdrop {
   }
 }
 
-.viewer.is-csv .content,
-.viewer.is-csv.no-wrap .content {
+.viewer.is-csv {
+  --csv-stripe: color-mix(in srgb, var(--fg) 4.5%, var(--bg));
+}
+
+.viewer.is-csv .line {
+  min-width: min-content;
+}
+
+.viewer.is-csv .line:nth-child(odd):not(.is-header):not(.is-selected) {
+  background: var(--csv-stripe);
+}
+
+.viewer.is-csv .content {
   display: grid;
   grid-template-columns: repeat(var(--csv-cols, 1), minmax(7rem, 1fr));
   column-gap: 0;
+  min-width: min-content;
   white-space: normal;
   word-break: normal;
 }
 
+.viewer.is-csv.no-wrap {
+  display: grid;
+  grid-template-columns: 3.4em 1.15em repeat(var(--csv-cols, 1), max-content);
+  justify-content: start;
+  align-content: start;
+}
+
+.viewer.is-csv.no-wrap .line {
+  display: grid;
+  grid-template-columns: subgrid;
+  grid-column: 1 / -1;
+  align-items: stretch;
+}
+
+.viewer.is-csv.no-wrap .content {
+  display: contents;
+}
+
 .viewer.is-csv.no-wrap .csv-cell {
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+}
+
+.viewer.is-csv.no-wrap .empty {
+  grid-column: 1 / -1;
 }
 
 .csv-cell {
@@ -886,7 +921,11 @@ dialog::backdrop {
   cursor: pointer;
 }
 
-.csv-cell.is-sort:hover {
+.viewer.is-csv .csv-cell.is-selected {
+  background: var(--sel);
+}
+
+.viewer.is-csv .csv-cell:hover {
   background: var(--btn-hover);
 }
 
@@ -907,10 +946,15 @@ dialog::backdrop {
 .line.is-header .csv-cell {
   font-weight: 650;
   color: var(--fg-strong);
+  background: var(--csv-head-bg);
 }
 
 .line.is-header {
-  background: color-mix(in srgb, var(--sel) 70%, transparent);
+  --csv-head-bg: color-mix(in srgb, var(--sel) 70%, var(--bg));
+  position: sticky;
+  top: calc(0px - var(--viewer-pad-top));
+  z-index: 2;
+  background: var(--csv-head-bg);
 }
 
 .md-hash.md-h1,
