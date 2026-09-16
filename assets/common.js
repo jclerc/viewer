@@ -375,11 +375,12 @@ export async function gunzipBytes(bytes) {
 }
 
 export async function buildHash(text, spec, opts = {}) {
+  // `:` is legal in URL fragments; `|` is encoded as `%7C` and the pasted link no longer parses.
   const bytes = new TextEncoder().encode(text);
   let body = bytesToB64(bytes);
   if (typeof CompressionStream === "function") {
     try {
-      body = `gz|${bytesToB64(await gzipBytes(bytes))}`;
+      body = `gz:${bytesToB64(await gzipBytes(bytes))}`;
     } catch {}
   }
   const extras = [];
@@ -387,17 +388,21 @@ export async function buildHash(text, spec, opts = {}) {
   if (opts.header != null) extras.push(opts.header ? "h1" : "h0");
   if (opts.jq) extras.push(`j${bytesToB64(new TextEncoder().encode(opts.jq))}`);
   if (spec) extras.push(formatSpec(spec));
-  return extras.length ? `${body}|${extras.join("|")}` : body;
+  return extras.length ? `${body}:${extras.join(":")}` : body;
 }
 
 export async function readHash(hash) {
   let raw = hash.startsWith("#") ? hash.slice(1) : hash;
   if (!raw) return null;
+  try {
+    raw = decodeURIComponent(raw);
+  } catch {}
+  raw = raw.replaceAll("|", ":");
 
-  const gzipped = raw.startsWith("gz|");
+  const gzipped = raw.startsWith("gz:");
   if (gzipped) raw = raw.slice(3);
 
-  const bar = raw.indexOf("|");
+  const bar = raw.indexOf(":");
   const b64 = bar === -1 ? raw : raw.slice(0, bar);
   const rest = bar === -1 ? "" : raw.slice(bar + 1);
 
@@ -406,16 +411,17 @@ export async function readHash(hash) {
     const text = gzipped ? await gunzipBytes(bytes) : new TextDecoder().decode(bytes);
     let nest = null;
     let header = null;
-    let selRaw = "";
     let jq = null;
-    for (const part of rest ? rest.split("|") : []) {
+    const specParts = [];
+    for (const part of rest ? rest.split(":") : []) {
       if (part === "n0" || part === "n1") nest = part === "n1";
       else if (part === "h0" || part === "h1") header = part === "h1";
       else if (part.startsWith("j") && part.length > 1) {
         jq = new TextDecoder().decode(b64ToBytes(part.slice(1)));
-      } else if (part) selRaw = part;
+      } else if (part) specParts.push(part);
     }
-    return { text, sel: parseSpec(selRaw), nest, jq, header };
+    // Cell/col specs contain `:`, so leftover pieces reassemble into one spec.
+    return { text, sel: parseSpec(specParts.join(":")), nest, jq, header };
   } catch {
     return null;
   }

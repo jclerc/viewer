@@ -80,11 +80,30 @@ function eq(a, b, msg) {
 
 {
   const hash = await buildHash("{}", null);
-  eq(hash.startsWith("gz|"), typeof CompressionStream === "function", "gzip when available");
+  eq(hash.startsWith("gz:"), typeof CompressionStream === "function", "gzip when available");
+  eq(hash.includes("|"), false, "no pipe in hash");
   const got = await readHash(hash);
   eq(got.text, "{}", "gzip roundtrip");
   const legacy = await readHash("e30");
   eq(got.text, legacy.text, "legacy uncompressed hash");
+}
+
+{
+  const cells = { kind: "cells", fromCol: 1, fromRow: 3, toCol: 1, toRow: 6 };
+  const hash = await buildHash("{}", cells, { nest: true, header: true });
+  const got = await readHash(hash);
+  eq(got.sel, cells, "cell spec with colons");
+  eq(got.nest, true, "nest flag");
+  eq(got.header, true, "header flag");
+}
+
+{
+  const pipe = await readHash("e30|n1|B3:B6");
+  eq(pipe.text, "{}", "pipe body");
+  eq(pipe.nest, true, "pipe nest");
+  eq(pipe.sel, { kind: "cells", fromCol: 1, fromRow: 3, toCol: 1, toRow: 6 }, "pipe spec");
+  const encoded = await readHash("e30%7Cn1%7CB3:B6");
+  eq(encoded.sel, pipe.sel, "percent-encoded pipe");
 }
 
 console.log("ok");
