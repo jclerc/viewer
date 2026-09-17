@@ -26,6 +26,10 @@ html[data-theme="light"] {
   --btn-hover: #e4dcc6;
   --warn: #b58900;
   --warn-bad: #cb4b16;
+  --kw: #6c71c4;
+  --fn: #b58900;
+  --type: #2aa198;
+  --param: #dc322f;
 }
 
 html[data-theme="default"] {
@@ -55,6 +59,10 @@ html[data-theme="default"] {
   --btn-hover: #4b5263;
   --warn: #e5c07b;
   --warn-bad: #e06c75;
+  --kw: #c678dd;
+  --fn: #e5c07b;
+  --type: #56b6c2;
+  --param: #e06c75;
 }
 
 html[data-theme="dark"] {
@@ -84,6 +92,10 @@ html[data-theme="dark"] {
   --btn-hover: #3a3a3a;
   --warn: #d4b56a;
   --warn-bad: #ea8a62;
+  --kw: #c4a0d4;
+  --fn: #d4b56a;
+  --type: #7eb8e0;
+  --param: #d89bb8;
 }
 
 * {
@@ -264,8 +276,16 @@ html[data-kind="csv"] .source-wrap.is-drop-target::after {
   content: "drop csv file here";
 }
 
+html[data-kind="py"] .source-wrap.is-drop-target::after {
+  content: "drop python file here";
+}
+
+html[data-kind="js"] .source-wrap.is-drop-target::after {
+  content: "drop javascript file here";
+}
+
 html[data-kind="home"] .source-wrap.is-drop-target::after {
-  content: "drop a json, markdown, or csv file";
+  content: "drop a json, markdown, csv, python, or javascript file";
 }
 
 .actions {
@@ -687,6 +707,23 @@ html.is-fs .fs-exit {
   color: var(--key);
 }
 
+.kw {
+  color: var(--kw);
+}
+
+.fn {
+  color: var(--fn);
+}
+
+.ty {
+  color: var(--type);
+}
+
+.param {
+  color: var(--param);
+  font-style: italic;
+}
+
 .s {
   color: var(--str);
 }
@@ -705,6 +742,11 @@ html.is-fs .fs-exit {
 
 .qt {
   color: var(--qt);
+}
+
+html[data-kind="py"] .qt,
+html[data-kind="js"] .qt {
+  color: var(--str);
 }
 
 .p {
@@ -1073,21 +1115,161 @@ dialog::backdrop {
 }
 
 body.landing {
+  --spot-x: 50%;
+  --spot-y: 28%;
+  position: relative;
   min-height: 100%;
+  overflow-x: hidden;
   display: grid;
   place-items: start center;
+  background:
+    radial-gradient(
+      900px 560px at var(--spot-x) var(--spot-y),
+      color-mix(in srgb, var(--key) 7%, transparent),
+      transparent 58%
+    ),
+    var(--bg);
+}
+
+.landing-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.landing-bg-grid {
+  position: absolute;
+  inset: -25%;
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--fg) 6%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--fg) 6%, transparent) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 70% 62% at 50% 38%, #000 18%, transparent 74%);
+  animation: landing-grid 32s linear infinite;
+}
+
+.landing-orb {
+  position: absolute;
+  width: 46vw;
+  height: 46vw;
+  min-width: 18rem;
+  min-height: 18rem;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.16;
+  will-change: transform;
+}
+
+html[data-theme="light"] .landing-orb {
+  opacity: 0.12;
+}
+
+.landing-orb-key {
+  background: color-mix(in srgb, var(--key) 50%, var(--bg));
+  top: -18%;
+  left: -12%;
+  animation: landing-orb-a 18s ease-in-out infinite;
+}
+
+.landing-orb-str {
+  background: color-mix(in srgb, var(--str) 50%, var(--bg));
+  top: -10%;
+  right: -16%;
+  width: 40vw;
+  height: 40vw;
+  animation: landing-orb-b 22s ease-in-out infinite;
+}
+
+.landing-orb-num {
+  background: color-mix(in srgb, var(--num) 50%, var(--bg));
+  bottom: -22%;
+  left: 8%;
+  width: 36vw;
+  height: 36vw;
+  animation: landing-orb-c 26s ease-in-out infinite;
+}
+
+.landing-orb-bool {
+  background: color-mix(in srgb, var(--bool) 50%, var(--bg));
+  bottom: -8%;
+  right: -8%;
+  width: 32vw;
+  height: 32vw;
+  opacity: 0.12;
+  animation: landing-orb-a 20s ease-in-out infinite reverse;
+}
+
+.landing-tokens {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.landing-token {
+  position: absolute;
+  margin: 0;
+  font: 600 0.95rem ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  white-space: nowrap;
+  user-select: none;
+  animation: landing-float var(--dur, 18s) ease-in-out infinite alternate;
+  animation-delay: var(--delay, 0s);
+}
+
+.landing-bg-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse 80% 70% at 50% 40%,
+    transparent 50%,
+    color-mix(in srgb, var(--bg) 62%, transparent) 100%
+  );
 }
 
 .landing-card {
+  position: relative;
+  z-index: 1;
   width: min(44rem, 100%);
   margin: 8vh 1.25rem 2rem;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  padding: 1.35rem 1.4rem 1.2rem;
+  border: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--bg-elev) 78%, transparent);
+  backdrop-filter: blur(18px) saturate(1.25);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--fg) 5%, transparent),
+    0 28px 64px color-mix(in srgb, #000 28%, transparent);
+  animation: landing-in 0.75s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .landing-card .brand {
   margin-bottom: 0.2rem;
+}
+
+.landing-card .brand h1 {
+  font-size: 1.85rem;
+  letter-spacing: -0.035em;
+}
+
+.landing-card .brand h1::after {
+  content: "";
+  display: block;
+  width: 3.1rem;
+  height: 2px;
+  margin-top: 0.5rem;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--key), var(--str), var(--num), var(--bool));
+  background-size: 220% 100%;
+  animation: landing-bar 7s linear infinite;
+}
+
+.landing-card .brand p {
+  font-size: 0.9rem;
+  max-width: 38em;
 }
 
 .landing-card .source-wrap {
@@ -1097,6 +1279,128 @@ body.landing {
 
 .landing-card #source {
   min-height: 14rem;
+  background: color-mix(in srgb, var(--bg) 86%, transparent);
+}
+
+body.landing button.primary {
+  background-image: linear-gradient(
+    110deg,
+    transparent 38%,
+    color-mix(in srgb, var(--bg) 28%, transparent) 50%,
+    transparent 62%
+  );
+  background-size: 220% 100%;
+  background-position: 120% 0;
+  animation: landing-sheen 4.8s ease-in-out 1.2s infinite;
+}
+
+body.landing .landing-links a {
+  position: relative;
+  transition: color 0.15s ease;
+}
+
+body.landing .landing-links a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.12em;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.18s ease;
+}
+
+body.landing .landing-links a:hover {
+  text-decoration: none;
+}
+
+body.landing .landing-links a:hover::after {
+  transform: scaleX(1);
+}
+
+@keyframes landing-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes landing-orb-a {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(12%, 10%) scale(1.12);
+  }
+}
+
+@keyframes landing-orb-b {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1.05);
+  }
+  50% {
+    transform: translate(-14%, 12%) scale(0.92);
+  }
+}
+
+@keyframes landing-orb-c {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(0.96);
+  }
+  50% {
+    transform: translate(10%, -12%) scale(1.14);
+  }
+}
+
+@keyframes landing-grid {
+  to {
+    transform: translate(56px, 56px);
+  }
+}
+
+@keyframes landing-float {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(var(--dx, 40px), var(--dy, -28px), 0);
+  }
+}
+
+@keyframes landing-bar {
+  to {
+    background-position: 220% 0;
+  }
+}
+
+@keyframes landing-sheen {
+  0%,
+  70% {
+    background-position: 120% 0;
+  }
+  100% {
+    background-position: -20% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-bg-grid,
+  .landing-orb,
+  .landing-card,
+  .landing-card .brand h1::after,
+  .landing-token,
+  body.landing button.primary {
+    animation: none;
+  }
 }
 
 .kind-hint {
@@ -1132,5 +1436,16 @@ body.landing {
     margin: 1rem max(0.75rem, env(safe-area-inset-right)) 1.5rem
       max(0.75rem, env(safe-area-inset-left));
     width: calc(100% - 1.5rem);
+    padding: 1.05rem 0.95rem 1rem;
+  }
+
+  .landing-card .brand h1 {
+    font-size: 1.55rem;
+  }
+
+  .landing-orb {
+    filter: blur(56px);
+    min-width: 14rem;
+    min-height: 14rem;
   }
 }

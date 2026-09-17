@@ -1,6 +1,6 @@
 # File Viewer
 
-A small, zero-dependency viewer for notes, dumps, and tables.
+A small, zero-dependency viewer for notes, dumps, tables, and source.
 
 **[Open it →](https://jclerc.github.io/viewer/)**
 
@@ -30,3 +30,15 @@ Same chrome as JSON, minus jq and nested-JSON parsing. `#` and `##` sections col
 **[CSV →](https://jclerc.github.io/viewer/csv/)**
 
 Same chrome as JSON, minus jq, nested-JSON parsing, and expand / collapse. Click a top-row cell to sort. With **Top row is header** on (default), that row stays put and the rest sort. Turn it off and the first row sorts too.
+
+### Python
+
+**[Python →](https://jclerc.github.io/viewer/py/)**
+
+Same chrome as Markdown. Source is shown in [Black](https://black.readthedocs.io/en/stable/the_black_code_style/current_style.html) style (double quotes, 4-space indent, 88 columns, isort-style imports, wrapped strings). `def` / `class` blocks collapse.
+
+### JavaScript
+
+**[JavaScript →](https://jclerc.github.io/viewer/js/)**
+
+Same chrome as Markdown. Source is shown in [Airbnb](https://github.com/airbnb/javascript) style (single quotes, 2-space indent, semicolons, braces on `if` / `for` / `while`, sorted imports, wrapped strings). JSX is supported. `function` / `class` blocks collapse.

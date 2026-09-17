@@ -8,7 +8,7 @@ import {
   migrateLegacyJson,
 } from "./common.js";
 
-const LABELS = { json: "JSON", md: "Markdown", csv: "CSV" };
+const LABELS = { json: "JSON", md: "Markdown", csv: "CSV", py: "Python", js: "JavaScript" };
 
 const source = document.querySelector("#source");
 const sourceWrap = source.closest(".source-wrap");
@@ -118,3 +118,64 @@ function clearDropTarget() {
   dragDepth = 0;
   sourceWrap.classList.remove("is-drop-target");
 }
+
+const LANDING_TOKENS = [
+  ["{", "--punct"],
+  ["}", "--punct"],
+  ["[", "--punct"],
+  ["]", "--punct"],
+  ['"id"', "--key"],
+  ['"name"', "--key"],
+  ['"ok"', "--str"],
+  ["true", "--bool"],
+  ["null", "--null"],
+  ["12", "--num"],
+  [":", "--punct"],
+];
+
+function initLandingFx() {
+  const layer = document.querySelector(".landing-tokens");
+  if (!layer) return;
+
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+  let timer = 0;
+
+  function paint() {
+    layer.replaceChildren();
+    const area = innerWidth * innerHeight;
+    const count = reduced.matches
+      ? Math.min(16, Math.max(8, Math.round(area / 56000)))
+      : Math.min(32, Math.max(14, Math.round(area / 36000)));
+
+    for (let i = 0; i < count; i++) {
+      const [text, token] = LANDING_TOKENS[(Math.random() * LANDING_TOKENS.length) | 0];
+      const el = document.createElement("span");
+      el.className = "landing-token";
+      el.textContent = text;
+      el.style.left = `${Math.random() * 92}%`;
+      el.style.top = `${Math.random() * 88}%`;
+      el.style.color = `var(${token})`;
+      el.style.opacity = `${0.1 + Math.random() * 0.18}`;
+      el.style.fontSize = `${0.72 + Math.random() * 0.7}rem`;
+      el.style.setProperty("--dx", `${(Math.random() - 0.5) * 90}px`);
+      el.style.setProperty("--dy", `${(Math.random() - 0.5) * 70}px`);
+      el.style.setProperty("--dur", `${12 + Math.random() * 16}s`);
+      el.style.setProperty("--delay", `${-Math.random() * 18}s`);
+      layer.append(el);
+    }
+  }
+
+  function onPointer(e) {
+    document.body.style.setProperty("--spot-x", `${e.clientX}px`);
+    document.body.style.setProperty("--spot-y", `${e.clientY}px`);
+  }
+
+  paint();
+  window.addEventListener("pointermove", onPointer, { passive: true });
+  window.addEventListener("resize", () => {
+    clearTimeout(timer);
+    timer = setTimeout(paint, 120);
+  });
+}
+
+initLandingFx();

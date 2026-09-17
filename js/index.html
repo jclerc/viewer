@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="default" data-kind="js">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>JavaScript Viewer</title>
+    <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="../assets/style.css" />
+  </head>
+  <body>
+    <svg class="glyphs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" width="0" height="0">
+      <symbol id="g-upload" viewBox="0 0 16 16">
+        <g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M8 10V3.5M5 6.2 8 3.2l3 3" />
+          <path d="M3 9.8v2.4a1.3 1.3 0 0 0 1.3 1.3h7.4A1.3 1.3 0 0 0 13 12.2V9.8" />
+        </g>
+      </symbol>
+      <symbol id="g-clear" viewBox="0 0 16 16">
+        <g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 4.5h10M6.2 4.5V3.2h3.6v1.3M5.2 4.5l.7 8.3h4.2l.7-8.3M7 7v3.5M9 7v3.5" />
+        </g>
+      </symbol>
+      <symbol id="g-expand" viewBox="0 0 16 16">
+        <g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 2.8 8 6.5l4-3.7M4 9.3 8 13l4-3.7" />
+        </g>
+      </symbol>
+      <symbol id="g-collapse" viewBox="0 0 16 16">
+        <g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 6.7 8 3l4 3.7M4 13.2 8 9.5l4 3.7" />
+        </g>
+      </symbol>
+      <symbol id="g-share" viewBox="0 0 16 16">
+        <g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="4" cy="8" r="2" />
+          <circle cx="12" cy="3.6" r="2" />
+          <circle cx="12" cy="12.4" r="2" />
+          <path d="M5.8 7 10.2 4.6M5.8 9 10.2 11.4" />
+        </g>
+      </symbol>
+      <symbol id="g-copy" viewBox="0 0 16 16">
+        <g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="5.5" y="5.5" width="7.5" height="7.5" rx="1.2" />
+          <path d="M10.5 5.5V4.2A1.2 1.2 0 0 0 9.3 3H4.2A1.2 1.2 0 0 0 3 4.2v5.1a1.2 1.2 0 0 0 1.2 1.2h1.3" />
+        </g>
+      </symbol>
+      <symbol id="g-close" viewBox="0 0 16 16">
+        <g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m4.2 4.2 7.6 7.6M11.8 4.2 4.2 11.8" />
+        </g>
+      </symbol>
+      <symbol id="g-sun" viewBox="0 0 16 16">
+        <g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="8" cy="8" r="2.3" />
+          <path d="M8 2.4v1.6M8 12v1.6M2.4 8h1.6M12 8h1.6M4.1 4.1l1.1 1.1M10.8 10.8l1.1 1.1M4.1 11.9l1.1-1.1M10.8 5.2l1.1-1.1" />
+        </g>
+      </symbol>
+      <symbol id="g-swatch" viewBox="0 0 16 16">
+        <g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="8" cy="8" r="5" />
+          <path d="M8 3a5 5 0 0 0 0 10z" fill="currentColor" stroke="none" />
+        </g>
+      </symbol>
+      <symbol id="g-moon" viewBox="0 0 16 16">
+        <g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M10.1 3.1a5.2 5.2 0 1 0 2.7 9.2 4.15 4.15 0 0 1-2.7-9.2z" />
+        </g>
+      </symbol>
+      <symbol id="g-fullscreen" viewBox="0 0 16 16">
+        <g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 6.2V3h3.2M10 3h3v3.2M13 10v3h-3.2M6.2 13H3v-3.2" />
+        </g>
+      </symbol>
+      <symbol id="g-exit-fs" viewBox="0 0 16 16">
+        <g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M6.2 3v3.2H3M13 6.2h-3.2V3M10 13v-3.2h3.2M3 10h3.2v3.2" />
+        </g>
+      </symbol>
+      <symbol id="g-search" viewBox="0 0 16 16">
+        <g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="7" cy="7" r="3.4" />
+          <path d="m9.6 9.6 3.2 3.2" />
+        </g>
+      </symbol>
+      <symbol id="g-jq" viewBox="0 0 16 16">
+        <g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 4.2h10L9.2 8.6v3.2L6.8 13V8.6z" />
+        </g>
+      </symbol>
+    </svg>
+
+    <div class="app">
+      <aside class="sidebar">
+        <header class="brand">
+          <h1>
+            <a class="home-link" href="../">Viewer</a>
+            <span class="brand-sep">/</span>
+            JavaScript
+            <a class="source-link" href="https://github.com/jclerc/json-viewer">(source)</a>
+          </h1>
+          <p>
+            Paste or upload JavaScript. Rendered with
+            <a href="https://github.com/airbnb/javascript">Airbnb</a>
+            style. Or use
+            <a href="./example.js" id="example-link">example</a>.
+          </p>
+        </header>
+
+        <div class="actions">
+          <button type="button" id="upload-btn">
+            <svg class="glyph" aria-hidden="true" viewBox="0 0 16 16" width="16" height="16"><use href="#g-upload" /></svg>
+            Upload file
+          </button>
+          <button type="button" id="clear-btn">
+            <svg class="glyph" aria-hidden="true" viewBox="0 0 16 16" width="16" height="16"><use href="#g-clear" /></svg>
+            Clear
+          </button>
+        </div>
+
+        <div class="source-wrap">
+          <textarea
+            id="source"
+            spellcheck="false"
+            autocomplete="off"
+            autocapitalize="off"
+            placeholder="const hello = 'world';"
+          ></textarea>
+        </div>
+
+        <p id="status" class="status" hidden></p>
+
+        <div class="actions">
+          <button type="button" id="expand-btn" disabled>
+            <svg class="glyph" aria-hidden="true" viewBox="0 0 16 16" width="16" height="16"><use href="#g-expand" /></svg>
+            Expand all
+          </button>
+          <button type="button" id="collapse-btn" disabled>
+            <svg class="glyph" aria-hidden="true" viewBox="0 0 16 16" width="16" height="16"><use href="#g-collapse" /></svg>
+            Collapse all
+          </button>
+          <button type="button" id="fullscreen-btn" disabled>
+            <svg class="glyph" aria-hidden="true" viewBox="0 0 16 16" width="16" height="16"><use href="#g-fullscreen" /></svg>
+            <span data-label>Fullscreen</span>
+          </button>
+          <button type="button" id="share-btn" disabled>
+            <svg class="glyph" aria-hidden="true" viewBox="0 0 16 16" width="16" height="16"><use href="#g-share" /></svg>
+            Share link
+          </button>
+        </div>
+
+        <div class="tool-field">
+          <button type="button" class="tool-label" id="search-btn">
+            <svg class="glyph" aria-hidden="true" viewBox="0 0 16 16" width="16" height="16"><use href="#g-search" /></svg>
+            Search
+          </button>
+          <input
+            id="search-input"
+            type="search"
+            spellcheck="false"
+            autocomplete="off"
+            placeholder="Find in JavaScript"
+            aria-label="Find in JavaScript"
+            aria-keyshortcuts="Meta+K Control+K"
+          />
+          <kbd class="tool-shortcut" data-shortcut="K" aria-hidden="true">⌘ K</kbd>
+          <span id="search-count" class="tool-meta"></span>
+        </div>
+
+        <input
+          id="file"
+          type="file"
+          hidden
+          accept=".js,.mjs,.cjs,.jsx,.txt,text/javascript,application/javascript,text/plain"
+        />
+
+        <div class="checks">
+          <label class="check">
+            <input type="checkbox" id="wrap-toggle" checked />
+            Word wrap
+          </label>
+          <label class="check">
+            <input type="checkbox" id="regex-toggle" checked />
+            Regex search
+          </label>
+        </div>
+
+        <div class="theme-row" role="radiogroup" aria-label="Theme">
+          <button type="button" data-theme="light" aria-pressed="false">
+            <svg class="glyph" aria-hidden="true" viewBox="0 0 16 16" width="16" height="16"><use href="#g-sun" /></svg>
+            Light
+          </button>
+          <button type="button" data-theme="default" aria-pressed="true">
+            <svg class="glyph" aria-hidden="true" viewBox="0 0 16 16" width="16" height="16"><use href="#g-swatch" /></svg>
+            Default
+          </button>
+          <button type="button" data-theme="dark" aria-pressed="false">
+            <svg class="glyph" aria-hidden="true" viewBox="0 0 16 16" width="16" height="16"><use href="#g-moon" /></svg>
+            Dark
+          </button>
+        </div>
+      </aside>
+
+      <main class="stage">
+        <div id="viewer" class="viewer" aria-label="JavaScript view">
+          <p class="empty">Paste JavaScript on the left to view it here.</p>
+        </div>
+        <button type="button" id="fs-exit-btn" class="fs-exit" aria-label="Exit fullscreen">
+          <svg class="glyph" aria-hidden="true" viewBox="0 0 16 16" width="16" height="16"><use href="#g-close" /></svg>
+        </button>
+      </main>
+    </div>
+
+    <div id="sel-tip" class="sel-tip" hidden>
+      <button type="button" id="sel-share-btn">
+        <svg class="glyph" aria-hidden="true" viewBox="0 0 16 16" width="16" height="16"><use href="#g-share" /></svg>
+        Share this selection
+      </button>
+    </div>
+
+    <dialog id="share-dialog">
+      <form method="dialog" class="share-form">
+        <h2>Share</h2>
+        <label class="share-label">
+          <span id="share-label-text">Link</span>
+          <input id="share-url" readonly />
+        </label>
+        <p id="share-warn" class="warn" hidden></p>
+        <div class="dlg-actions">
+          <button type="button" id="copy-btn" class="primary">
+            <svg class="glyph" aria-hidden="true" viewBox="0 0 16 16" width="16" height="16"><use href="#g-copy" /></svg>
+            <span data-label>Copy</span>
+          </button>
+          <button value="close">
+            <svg class="glyph" aria-hidden="true" viewBox="0 0 16 16" width="16" height="16"><use href="#g-close" /></svg>
+            Close
+          </button>
+        </div>
+      </form>
+    </dialog>
+
+    <p id="toast" class="toast" hidden role="status"></p>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

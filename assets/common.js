@@ -132,6 +132,12 @@ export function detectKind(text, filename = "") {
     mdown: "md",
     csv: "csv",
     tsv: "csv",
+    py: "py",
+    pyi: "py",
+    js: "js",
+    mjs: "js",
+    cjs: "js",
+    jsx: "js",
   };
   if (byExt[ext]) return byExt[ext];
 
@@ -139,12 +145,36 @@ export function detectKind(text, filename = "") {
   if (!raw.trim()) return null;
   if (looksLikeJson(raw)) return "json";
   if (looksLikeCsv(raw)) return "csv";
+  if (looksLikeMarkdownFence(raw)) return "md";
+  if (looksLikePython(raw)) return "py";
+  if (looksLikeJs(raw)) return "js";
   return "md";
 }
 
 function looksLikeJson(text) {
   const t = stripJsoncLead(text);
   return t.startsWith("{") || t.startsWith("[");
+}
+
+function looksLikeMarkdownFence(text) {
+  return /^ {0,3}```/m.test(text);
+}
+
+function looksLikePython(text) {
+  if (/^\s*(async\s+)?def\s+\w+\s*\(/m.test(text)) return true;
+  if (/^\s*class\s+\w+\s*[:(]/m.test(text)) return true;
+  if (/^\s*from\s+[.\w]+\s+import\s+/m.test(text)) return true;
+  if (/^\s*import\s+[A-Za-z_]\w*(\s*,\s*[A-Za-z_]\w*)*(\s+as\s+\w+)?\s*(#.*)?$/m.test(text)) return true;
+  return false;
+}
+
+function looksLikeJs(text) {
+  if (/^\s*(export\s+)?(default\s+)?(async\s+)?function\b/m.test(text)) return true;
+  if (/^\s*(export\s+)?(const|let|var)\s+\w+\s*=/m.test(text)) return true;
+  if (/^\s*import\s+(?:.+?\s+from\s+)?['"`]/m.test(text)) return true;
+  if (/\([^)]*\)\s*=>\s*\{/.test(text)) return true;
+  if (/<[A-Za-z][\w.]*(\s|\/|>)/.test(text)) return true;
+  return false;
 }
 
 function stripJsoncLead(text) {

@@ -61,6 +61,16 @@ function eq(a, b, msg) {
   eq(detectKind("hello world"), "md", "prose is markdown");
   eq(detectKind("x", "notes.md"), "md", "extension wins");
   eq(detectKind("a,b", "data.json"), "json", "json extension wins");
+  eq(detectKind("def foo():\n    return 1\n"), "py", "python def");
+  eq(detectKind("from os import path\n"), "py", "python import");
+  eq(detectKind("const x = 1;\n"), "js", "javascript const");
+  eq(detectKind("function hello() {}\n"), "js", "javascript function");
+  eq(detectKind("x", "app.py"), "py", "py extension wins");
+  eq(detectKind("x", "app.js"), "js", "js extension wins");
+  eq(detectKind("x", "app.jsx"), "js", "jsx extension wins");
+  eq(detectKind("() => { return 1; }"), "js", "javascript arrow");
+  eq(detectKind("x => y is a mapping"), "md", "arrow in prose stays markdown");
+  eq(detectKind("# Title\n```python\ndef foo():\n    pass\n```\n"), "md", "fenced python stays markdown");
 }
 
 {
