@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="default" data-kind="csv">
+<html lang="en" data-theme="default" data-kind="sql">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>CSV Viewer</title>
+    <title>SQL Viewer</title>
     <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="../assets/style.css" />
   </head>
@@ -82,11 +82,6 @@
           <path d="m9.6 9.6 3.2 3.2" />
         </g>
       </symbol>
-      <symbol id="g-filter" viewBox="0 0 16 16">
-        <g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M2.8 3.2h10.4L9.4 7.6v3.1l-2.8 1.5V7.6z" />
-        </g>
-      </symbol>
       <symbol id="g-jq" viewBox="0 0 16 16">
         <g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
           <path d="M3 4.2h10L9.2 8.6v3.2L6.8 13V8.6z" />
@@ -100,12 +95,14 @@
           <h1>
             <a class="home-link" href="../">Viewer</a>
             <span class="brand-sep">/</span>
-            CSV
+            SQL
             <a class="source-link" href="https://github.com/jclerc/viewer">(source)</a>
           </h1>
           <p>
-            Paste or upload CSV or TSV. Or use
-            <a href="./example.csv" id="example-link">example</a>.
+            Paste or upload SQL. Rendered in
+            <a href="https://docs.telemetry.mozilla.org/concepts/sql_style.html">Mozilla</a>
+            style. Or use
+            <a href="./example.sql" id="example-link">example</a>.
           </p>
         </header>
 
@@ -126,13 +123,21 @@
             spellcheck="false"
             autocomplete="off"
             autocapitalize="off"
-            placeholder="name,age"
+            placeholder="select * from hello;"
           ></textarea>
         </div>
 
         <p id="status" class="status" hidden></p>
 
         <div class="actions">
+          <button type="button" id="expand-btn" disabled>
+            <svg class="glyph" aria-hidden="true" viewBox="0 0 16 16" width="16" height="16"><use href="#g-expand" /></svg>
+            Expand all
+          </button>
+          <button type="button" id="collapse-btn" disabled>
+            <svg class="glyph" aria-hidden="true" viewBox="0 0 16 16" width="16" height="16"><use href="#g-collapse" /></svg>
+            Collapse all
+          </button>
           <button type="button" id="fullscreen-btn" disabled>
             <svg class="glyph" aria-hidden="true" viewBox="0 0 16 16" width="16" height="16"><use href="#g-fullscreen" /></svg>
             <span data-label>Fullscreen</span>
@@ -153,8 +158,8 @@
             type="search"
             spellcheck="false"
             autocomplete="off"
-            placeholder="Find in CSV"
-            aria-label="Find in CSV"
+            placeholder="Find in SQL"
+            aria-label="Find in SQL"
             aria-keyshortcuts="Meta+K Control+K"
           />
           <kbd class="tool-shortcut" data-shortcut="K" aria-hidden="true">⌘ K</kbd>
@@ -165,16 +170,12 @@
           id="file"
           type="file"
           hidden
-          accept=".csv,.tsv,.txt,text/csv,text/tab-separated-values,text/plain"
+          accept=".sql,.ddl,.pgsql,.psql,.mysql,.tsql,.txt,application/sql,text/x-sql,text/plain"
         />
 
         <div class="checks">
           <label class="check">
-            <input type="checkbox" id="header-toggle" checked />
-            Top row is header
-          </label>
-          <label class="check">
-            <input type="checkbox" id="wrap-toggle" />
+            <input type="checkbox" id="wrap-toggle" checked />
             Word wrap
           </label>
           <label class="check">
@@ -200,8 +201,8 @@
       </aside>
 
       <main class="stage">
-        <div id="viewer" class="viewer" aria-label="CSV table">
-          <p class="empty">Paste CSV on the left to view it here.</p>
+        <div id="viewer" class="viewer" aria-label="SQL view">
+          <p class="empty">Paste SQL on the left to view it here.</p>
         </div>
         <button type="button" id="fs-exit-btn" class="fs-exit" aria-label="Exit fullscreen">
           <svg class="glyph" aria-hidden="true" viewBox="0 0 16 16" width="16" height="16"><use href="#g-close" /></svg>

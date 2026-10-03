@@ -2,6 +2,6 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node json/test.mjs && node md/test.mjs && node csv/test.mjs && node py/test.mjs && node js/test.mjs"
+    "test": "node json/test.mjs && node md/test.mjs && node csv/test.mjs && node py/test.mjs && node js/test.mjs && node sql/test.mjs"
   }
 }

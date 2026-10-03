@@ -1,4 +1,4 @@
-import { parseCsv, detectDelimiter, serializeCsv, sortRows, compareCells } from "./parser.js";
+import { parseCsv, detectDelimiter, serializeCsv, sortRows, filterRows, columnValues, compareCells } from "./parser.js";
 import { detectKind, formatSpec, parseSpec, buildHash, readHash } from "../assets/common.js";
 
 function eq(a, b, msg) {
@@ -43,6 +43,20 @@ function eq(a, b, msg) {
   ];
   eq(sortRows(rows, 1, 1, true), [["name", "n"], ["Bea", "2"], ["Ada", "10"]], "header stays, numeric asc");
   eq(sortRows(rows, 0, 1, false)[0][0], "Ada", "no header sorts first row");
+  const cities = [
+    ["city"],
+    ["Paris"],
+    ["Lyon"],
+    ["Paris"],
+  ];
+  eq(columnValues(cities, 0, true), ["Lyon", "Paris"], "unique column values");
+  eq(
+    filterRows(cities, new Map([[0, new Set(["Paris"])]]), true),
+    [["city"], ["Paris"], ["Paris"]],
+    "filter keeps header",
+  );
+  eq(filterRows(cities, new Map([[0, new Set()]]), true), [["city"]], "empty selection hides data");
+  eq(filterRows(cities, new Map(), true), cities, "no filter");
 }
 
 {
@@ -114,6 +128,24 @@ function eq(a, b, msg) {
   eq(pipe.sel, { kind: "cells", fromCol: 1, fromRow: 3, toCol: 1, toRow: 6 }, "pipe spec");
   const encoded = await readHash("e30%7Cn1%7CB3:B6");
   eq(encoded.sel, pipe.sel, "percent-encoded pipe");
+}
+
+{
+  const cells = { kind: "cells", fromCol: 1, fromRow: 3, toCol: 1, toRow: 6 };
+  const hash = await buildHash("a,b\n", cells, {
+    header: true,
+    sort: { col: 1, dir: -1 },
+    filters: { 0: ["Ada", "a:b,c"] },
+  });
+  const got = await readHash(hash);
+  eq(got.text, "a,b\n", "view hash keeps text");
+  eq(got.header, true, "view hash keeps header");
+  eq(got.sort, { col: 1, dir: -1 }, "sort roundtrip");
+  eq(got.filters, { 0: ["Ada", "a:b,c"] }, "filter roundtrip");
+  eq(got.sel, cells, "cell spec survives sort and filters");
+  const plain = await readHash(await buildHash("a", null, { header: false }));
+  eq(plain.sort, null, "no sort when unset");
+  eq(plain.filters, null, "no filters when unset");
 }
 
 console.log("ok");

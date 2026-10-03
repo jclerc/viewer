@@ -124,3 +124,28 @@ export function sortRows(rows, col, dir, headerOn) {
   });
   return [...head, ...body.map((item) => item.row)];
 }
+
+export function columnValues(rows, col, headerOn) {
+  const values = [];
+  const seen = new Set();
+  for (let i = headerOn ? 1 : 0; i < rows.length; i += 1) {
+    const value = String(rows[i]?.[col] ?? "");
+    if (seen.has(value)) continue;
+    seen.add(value);
+    values.push(value);
+  }
+  values.sort(compareCells);
+  return values;
+}
+
+export function filterRows(rows, selectedByCol, headerOn) {
+  if (!rows.length || !selectedByCol?.size) return rows;
+  const start = headerOn ? 1 : 0;
+  const body = rows.slice(start).filter((row) => {
+    for (const [col, allowed] of selectedByCol) {
+      if (!allowed.has(String(row[col] ?? ""))) return false;
+    }
+    return true;
+  });
+  return [...rows.slice(0, start), ...body];
+}

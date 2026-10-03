@@ -138,12 +138,19 @@ export function detectKind(text, filename = "") {
     mjs: "js",
     cjs: "js",
     jsx: "js",
+    sql: "sql",
+    ddl: "sql",
+    pgsql: "sql",
+    psql: "sql",
+    mysql: "sql",
+    tsql: "sql",
   };
   if (byExt[ext]) return byExt[ext];
 
   const raw = stripBom(String(text ?? ""));
   if (!raw.trim()) return null;
   if (looksLikeJson(raw)) return "json";
+  if (looksLikeSql(raw)) return "sql";
   if (looksLikeCsv(raw)) return "csv";
   if (looksLikeMarkdownFence(raw)) return "md";
   if (looksLikePython(raw)) return "py";
@@ -166,6 +173,45 @@ function looksLikePython(text) {
   if (/^\s*from\s+[.\w]+\s+import\s+/m.test(text)) return true;
   if (/^\s*import\s+[A-Za-z_]\w*(\s*,\s*[A-Za-z_]\w*)*(\s+as\s+\w+)?\s*(#.*)?$/m.test(text)) return true;
   return false;
+}
+
+// Only the first statement counts, and its keyword must be all upper or all lower
+// case so prose such as "Select a file from the list" stays Markdown.
+function looksLikeSql(text) {
+  const t = text.replace(/^(\s*(--[^\n]*|\/\*[\s\S]*?\*\/))*\s*/, "");
+  const m = /^([A-Za-z]+)\b/.exec(t);
+  if (!m || (m[1] !== m[1].toUpperCase() && m[1] !== m[1].toLowerCase())) return false;
+  const head = t.slice(0, 2000);
+  switch (m[1].toLowerCase()) {
+    case "select":
+      return /^select\s+[\s\S]*?(\bfrom\s|;|$)/i.test(head) && !/^select\s+(the|a|an|your|one|this)\b/i.test(head);
+    case "with":
+      return /^with\s+(recursive\s+)?[\w"`]+\s*(\([^)]*\))?\s+as\s*\(/i.test(head);
+    case "insert":
+      return /^insert\s+(ignore\s+)?into\s/i.test(head);
+    case "update":
+      return /^update\s+\S+\s+set\s/i.test(head);
+    case "delete":
+      return /^delete\s+from\s/i.test(head);
+    case "create":
+      return /^create\s+(or\s+replace\s+)?(temp\w*\s+|unique\s+|materialized\s+)*(table|view|index|function|procedure|trigger|schema|database|type|extension|sequence)\b/i.test(head);
+    case "alter":
+    case "drop":
+      return /^(alter|drop)\s+(table|view|index|function|procedure|schema|database|type|sequence)\b/i.test(head);
+    case "set":
+    case "begin":
+    case "pragma":
+      return /;\s*$/m.test(head.split("\n")[0]);
+    case "copy":
+    case "truncate":
+    case "grant":
+    case "explain":
+    case "merge":
+    case "declare":
+      return true;
+    default:
+      return false;
+  }
 }
 
 function looksLikeJs(text) {
@@ -416,6 +462,8 @@ export async function buildHash(text, spec, opts = {}) {
   const extras = [];
   if (opts.nest != null) extras.push(opts.nest ? "n1" : "n0");
   if (opts.header != null) extras.push(opts.header ? "h1" : "h0");
+  if (opts.sort) extras.push(`s${opts.sort.col}${opts.sort.dir < 0 ? "d" : "a"}`);
+  if (opts.filters) extras.push(`f.${bytesToB64(new TextEncoder().encode(JSON.stringify(opts.filters)))}`);
   if (opts.jq) extras.push(`j${bytesToB64(new TextEncoder().encode(opts.jq))}`);
   if (spec) extras.push(formatSpec(spec));
   return extras.length ? `${body}:${extras.join(":")}` : body;
@@ -442,16 +490,26 @@ export async function readHash(hash) {
     let nest = null;
     let header = null;
     let jq = null;
+    let sort = null;
+    let filters = null;
     const specParts = [];
     for (const part of rest ? rest.split(":") : []) {
       if (part === "n0" || part === "n1") nest = part === "n1";
       else if (part === "h0" || part === "h1") header = part === "h1";
-      else if (part.startsWith("j") && part.length > 1) {
+      else if (/^s\d+[ad]$/.test(part)) {
+        sort = { col: Number(part.slice(1, -1)), dir: part.endsWith("d") ? -1 : 1 };
+      } else if (part.startsWith("f.")) {
+        try {
+          filters = JSON.parse(new TextDecoder().decode(b64ToBytes(part.slice(2))));
+        } catch {
+          filters = null;
+        }
+      } else if (part.startsWith("j") && part.length > 1) {
         jq = new TextDecoder().decode(b64ToBytes(part.slice(1)));
       } else if (part) specParts.push(part);
     }
     // Cell/col specs contain `:`, so leftover pieces reassemble into one spec.
-    return { text, sel: parseSpec(specParts.join(":")), nest, jq, header };
+    return { text, sel: parseSpec(specParts.join(":")), nest, jq, header, sort, filters };
   } catch {
     return null;
   }
@@ -459,6 +517,82 @@ export async function readHash(hash) {
 
 export function saveText(kind, text) {
   localStorage.setItem(ns(kind).text, text);
+}
+
+const APPS = [
+  { id: "home", label: "Home", href: "../" },
+  { id: "json", label: "JSON", href: "../json/" },
+  { id: "md", label: "Markdown", href: "../md/" },
+  { id: "csv", label: "CSV", href: "../csv/" },
+  { id: "py", label: "Python", href: "../py/" },
+  { id: "js", label: "JavaScript", href: "../js/" },
+  { id: "sql", label: "SQL", href: "../sql/" },
+];
+
+const APPS_ICON =
+  `<svg class="glyph" aria-hidden="true" viewBox="0 0 16 16" width="16" height="16">` +
+  `<g fill="currentColor">` +
+  `<rect x="1" y="1" width="3.7" height="3.7" rx="0.55"/>` +
+  `<rect x="6.15" y="1" width="3.7" height="3.7" rx="0.55"/>` +
+  `<rect x="11.3" y="1" width="3.7" height="3.7" rx="0.55"/>` +
+  `<rect x="1" y="6.15" width="3.7" height="3.7" rx="0.55"/>` +
+  `<rect x="6.15" y="6.15" width="3.7" height="3.7" rx="0.55"/>` +
+  `<rect x="11.3" y="6.15" width="3.7" height="3.7" rx="0.55"/>` +
+  `<rect x="1" y="11.3" width="3.7" height="3.7" rx="0.55"/>` +
+  `<rect x="6.15" y="11.3" width="3.7" height="3.7" rx="0.55"/>` +
+  `<rect x="11.3" y="11.3" width="3.7" height="3.7" rx="0.55"/>` +
+  `</g></svg>`;
+
+function mountAppsMenu(kind) {
+  const homeLink = document.querySelector(".home-link");
+  if (!homeLink || document.querySelector(".apps-btn")) return;
+
+  const btn = el("button", {
+    type: "button",
+    class: "apps-btn",
+    "aria-label": "Apps",
+    "aria-haspopup": "dialog",
+    "aria-controls": "apps-dialog",
+  });
+  btn.innerHTML = APPS_ICON;
+  homeLink.before(btn);
+
+  const title = el("h2", { id: "apps-dialog-title" }, "Apps");
+  const close = el("button", { type: "button", class: "apps-close", "aria-label": "Close" });
+  close.innerHTML =
+    `<svg class="glyph" aria-hidden="true" viewBox="0 0 16 16" width="16" height="16">` +
+    `<use href="#g-close" /></svg>`;
+
+  const list = el("ul", { class: "apps-list" });
+  for (const app of APPS) {
+    if (app.id === "json") list.append(el("li", { class: "apps-sep", role: "separator" }));
+    const attrs = { href: app.href };
+    if (app.id === kind) attrs["aria-current"] = "page";
+    list.append(el("li", {}, el("a", attrs, app.label)));
+  }
+
+  const dialog = el(
+    "dialog",
+    { id: "apps-dialog", class: "apps-dialog", "aria-labelledby": "apps-dialog-title" },
+    el("div", { class: "apps-head" }, title, close),
+    list,
+  );
+  document.body.append(dialog);
+
+  btn.addEventListener("click", () => {
+    const r = (btn.closest("h1") ?? btn).getBoundingClientRect();
+    dialog.style.setProperty("--apps-top", `${Math.round(r.bottom + 6)}px`);
+    dialog.style.setProperty("--apps-left", `${Math.round(r.left)}px`);
+    dialog.showModal();
+    dialog.querySelector("[aria-current='page']")?.focus();
+  });
+  close.addEventListener("click", () => dialog.close());
+  dialog.addEventListener("click", (e) => {
+    const r = dialog.getBoundingClientRect();
+    if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) {
+      dialog.close();
+    }
+  });
 }
 
 export function mountViewer(options) {
@@ -469,11 +603,13 @@ export function mountViewer(options) {
     extraInit,
     hashOpts,
     applyHashExtras,
+    afterRender,
     copyCells,
     render: renderBody,
   } = options;
 
   migrateLegacyJson();
+  mountAppsMenu(kind);
 
   const ls = ns(kind);
   const source = document.querySelector("#source");
@@ -958,6 +1094,7 @@ export function mountViewer(options) {
       viewer.replaceChildren(el("p", { class: "empty" }, emptyMessage));
       setToolbar({ has: false, sourceHas: false });
       clearSearchMarks();
+      afterRender?.(api);
       return;
     }
 
@@ -980,6 +1117,7 @@ export function mountViewer(options) {
 
     if (!has) {
       clearSearchMarks();
+      afterRender?.(api);
       return;
     }
 
@@ -999,6 +1137,7 @@ export function mountViewer(options) {
     } else {
       applySearch({ reset: false });
     }
+    afterRender?.(api);
   }
 
   api.render = render;

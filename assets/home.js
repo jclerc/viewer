@@ -8,7 +8,7 @@ import {
   migrateLegacyJson,
 } from "./common.js";
 
-const LABELS = { json: "JSON", md: "Markdown", csv: "CSV", py: "Python", js: "JavaScript" };
+const LABELS = { json: "JSON", md: "Markdown", csv: "CSV", py: "Python", js: "JavaScript", sql: "SQL" };
 
 const source = document.querySelector("#source");
 const sourceWrap = source.closest(".source-wrap");
